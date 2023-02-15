@@ -1,6 +1,6 @@
-import { Express } from "express";
+import express from "express";
 import bodyParser from "body-parser";
-import mongoose from "mongoose";
+import mongoose, { Mongoose } from "mongoose";
 import cors from "cors";
 import dotenv from 'dotenv'
 import multer from "multer";
@@ -22,3 +22,25 @@ app.use(bodyParser.json({ limit: "30mb", extended: true }))
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }))
 app.use(cors())
 app.use("/assets", express.static(path.join(__dirname, 'public/assets')))
+// things like assets are stored locally, but on a work setting they would be in a cloud storage more likely
+
+// set up file storage
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, "public/assets");
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname);
+    }
+})
+// multer gihub repo for instructions 
+
+const upload = multer({ storage })
+
+// MONGOOSE SET UP
+const PORT = process.env.PORT || 6001;
+Mongoose.connect(process.env.MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+}).then(() => app.listen(PORT, () => console.log("Server Port: ${PORT}"))).catch((error) => console.log('${error} did not connect'))
+
